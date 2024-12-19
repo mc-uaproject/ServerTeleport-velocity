@@ -1,15 +1,14 @@
 package net.teamfruit.serverteleport;
 
 import com.moandjiezana.toml.Toml;
-import com.velocitypowered.api.command.Command;
+import com.velocitypowered.api.command.SimpleCommand;
 import com.velocitypowered.api.command.CommandSource;
 import com.velocitypowered.api.proxy.Player;
 import com.velocitypowered.api.proxy.ProxyServer;
 import com.velocitypowered.api.proxy.ServerConnection;
 import com.velocitypowered.api.proxy.server.RegisteredServer;
 import com.velocitypowered.api.proxy.server.ServerInfo;
-import net.kyori.text.ComponentBuilders;
-import org.checkerframework.checker.nullness.qual.NonNull;
+import net.kyori.adventure.text.Component;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -19,7 +18,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class ServerTeleportCommand implements Command {
+public class ServerTeleportCommand implements SimpleCommand {
     private final ProxyServer server;
 
     private final String langPrefix;
@@ -45,12 +44,14 @@ public class ServerTeleportCommand implements Command {
     }
 
     @Override
-    public void execute(@NonNull CommandSource player, String[] args) {
+    public void execute(Invocation invocation) {
+        CommandSource source = invocation.source();
+        String[] args = invocation.arguments();
         // Permission Validation
-        if (!player.hasPermission("servertp")) {
-            player.sendMessage(ComponentBuilders.text()
+        if (!source.hasPermission("servertp")) {
+            source.sendMessage(Component.text()
                     .content(langPrefix)
-                    .append(langNoPermission)
+                    .append(Component.text(langNoPermission))
                     .build()
             );
             return;
@@ -58,9 +59,9 @@ public class ServerTeleportCommand implements Command {
 
         // Argument Validation
         if (args.length < 2) {
-            player.sendMessage(ComponentBuilders.text()
+            source.sendMessage(Component.text()
                     .content(langPrefix)
-                    .append(langUsage)
+                    .append(Component.text(langUsage))
                     .build()
             );
             return;
@@ -73,11 +74,11 @@ public class ServerTeleportCommand implements Command {
                 ? this.server.getServer(dstArg.substring(1))
                 : this.server.getPlayer(dstArg).flatMap(Player::getCurrentServer).map(ServerConnection::getServer);
         if (!dstOptional.isPresent()) {
-            player.sendMessage(ComponentBuilders.text()
-                    .append(ComponentBuilders.text()
+            source.sendMessage(Component.text()
+                    .append(Component.text()
                             .content(langPrefix))
-                    .append(ComponentBuilders.text()
-                            .append(langNoServer))
+                    .append(Component.text()
+                            .append(Component.text(langNoServer)))
                     .build()
             );
             return;
@@ -97,17 +98,17 @@ public class ServerTeleportCommand implements Command {
                 .collect(Collectors.toList());
 
         // Send Message
-        player.sendMessage(ComponentBuilders.text()
-                .append(ComponentBuilders.text()
+        source.sendMessage(Component.text()
+                .append(Component.text()
                         .content(langPrefix))
-                .append(ComponentBuilders.text()
+                .append(Component.text()
                         .append(
-                                String.format(langSuccess,
+                                Component.text(String.format(langSuccess,
                                         dstArg,
                                         src.size() == 1
                                                 ? String.format(langPlayerName, src.get(0).getUsername())
                                                 : String.format(langPlayerNum, src.size())
-                                )
+                                ))
                         ))
                 .build()
         );
@@ -126,9 +127,11 @@ public class ServerTeleportCommand implements Command {
     }
 
     @Override
-    public List<String> suggest(CommandSource player, @NonNull String[] args) {
+    public List<String> suggest(Invocation invocation) {
+        CommandSource source = invocation.source();
+        String[] args = invocation.arguments();
         // Permission Validation
-        if (!player.hasPermission("servertp"))
+        if (!source.hasPermission("servertp"))
             return Collections.emptyList();
 
         // Source Suggestion

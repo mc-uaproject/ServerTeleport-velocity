@@ -76,7 +76,10 @@ public class ServerTeleport {
         if (toml == null) {
             logger.warn("Failed to load config.toml. Shutting down.");
         } else {
-            commandManager.register(new ServerTeleportCommand(server, toml), "stp", "servertp");
+            commandManager.register(
+                    commandManager.metaBuilder("servertp").aliases("stp").plugin(this).build(),
+                    new ServerTeleportCommand(server, toml)
+            );
             logger.info("Plugin has enabled!");
         }
     }
