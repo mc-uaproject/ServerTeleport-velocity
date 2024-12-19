@@ -104,10 +104,10 @@ public class ServerTeleportCommand implements SimpleCommand {
                 .append(Component.text()
                         .append(
                                 Component.text(String.format(langSuccess,
-                                        dstArg,
                                         src.size() == 1
                                                 ? String.format(langPlayerName, src.get(0).getUsername())
-                                                : String.format(langPlayerNum, src.size())
+                                                : String.format(langPlayerNum, src.size()),
+                                        dstArg
                                 ))
                         ))
                 .build()
