@@ -141,6 +141,11 @@ public class ServerTeleportCommand implements SimpleCommand {
         }));
     }
 
+    @Override
+    public boolean hasPermission(final Invocation invocation) {
+        return invocation.source().hasPermission("servertp");
+    }
+
     private List<String> candidate(String arg, List<String> candidates) {
         if (arg.isEmpty())
             return candidates;
