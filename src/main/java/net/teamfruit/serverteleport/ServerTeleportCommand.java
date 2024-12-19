@@ -109,7 +109,6 @@ public class ServerTeleportCommand implements SimpleCommand {
                         : this.server.getPlayer(srcArg).map(Arrays::asList).orElseGet(Collections::emptyList)
         )
                 .stream()
-                .filter(p -> !dstOptional.equals(p.getCurrentServer().map(ServerConnection::getServer)))
                 .collect(Collectors.toList());
 
         // Send Message
@@ -129,8 +128,11 @@ public class ServerTeleportCommand implements SimpleCommand {
         );
 
         // Run Redirect
-        src.forEach(p ->
-                p.createConnectionRequest(dst).fireAndForget());
+        src.forEach(p -> {
+            if (!dstOptional.equals(p.getCurrentServer().map(ServerConnection::getServer))) {
+                p.createConnectionRequest(dst).fireAndForget();
+            }
+        });
         dstPlayer.ifPresent(player -> src.forEach(p -> {
             ByteArrayDataOutput out = ByteStreams.newDataOutput();
             out.writeUTF(p.getUsername());
