@@ -61,7 +61,15 @@ public class ServerTeleportCommand implements SimpleCommand {
         }
 
         // Argument Validation
-        if (args.length < 2) {
+        String srcArg;
+        String dstArg;
+        if (args.length >= 2) {
+            srcArg = args[0];
+            dstArg = args[1];
+        } else if (args.length == 1 && source instanceof Player player) {
+            srcArg = player.getUsername();
+            dstArg = args[0];
+        } else {
             source.sendMessage(Component.text()
                     .content(langPrefix)
                     .append(Component.text(langUsage))
@@ -69,8 +77,6 @@ public class ServerTeleportCommand implements SimpleCommand {
             );
             return;
         }
-        String srcArg = args[0];
-        String dstArg = args[1];
 
         // Destination Validation
         Optional<RegisteredServer> dstOptional;
