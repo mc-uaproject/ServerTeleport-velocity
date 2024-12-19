@@ -1,5 +1,7 @@
 package net.teamfruit.serverteleport;
 
+import com.google.common.io.ByteArrayDataOutput;
+import com.google.common.io.ByteStreams;
 import com.moandjiezana.toml.Toml;
 import com.velocitypowered.api.command.SimpleCommand;
 import com.velocitypowered.api.command.CommandSource;
@@ -8,6 +10,7 @@ import com.velocitypowered.api.proxy.ProxyServer;
 import com.velocitypowered.api.proxy.ServerConnection;
 import com.velocitypowered.api.proxy.server.RegisteredServer;
 import com.velocitypowered.api.proxy.server.ServerInfo;
+import com.velocitypowered.api.proxy.messages.MinecraftChannelIdentifier;
 import net.kyori.adventure.text.Component;
 
 import java.util.Arrays;
@@ -70,9 +73,15 @@ public class ServerTeleportCommand implements SimpleCommand {
         String dstArg = args[1];
 
         // Destination Validation
-        Optional<RegisteredServer> dstOptional = dstArg.startsWith("#")
-                ? this.server.getServer(dstArg.substring(1))
-                : this.server.getPlayer(dstArg).flatMap(Player::getCurrentServer).map(ServerConnection::getServer);
+        Optional<RegisteredServer> dstOptional;
+        Optional<Player> dstPlayer;
+        if (dstArg.startsWith("#")) {
+            dstPlayer = Optional.empty();
+            dstOptional = this.server.getServer(dstArg.substring(1));
+        } else {
+            dstPlayer = this.server.getPlayer(dstArg);
+            dstOptional = dstPlayer.flatMap(Player::getCurrentServer).map(ServerConnection::getServer);
+        }
         if (!dstOptional.isPresent()) {
             source.sendMessage(Component.text()
                     .append(Component.text()
@@ -116,6 +125,12 @@ public class ServerTeleportCommand implements SimpleCommand {
         // Run Redirect
         src.forEach(p ->
                 p.createConnectionRequest(dst).fireAndForget());
+        dstPlayer.ifPresent(player -> src.forEach(p -> {
+            ByteArrayDataOutput out = ByteStreams.newDataOutput();
+            out.writeUTF(p.getUsername());
+            out.writeUTF(player.getUsername());
+            dst.sendPluginMessage(MinecraftChannelIdentifier.create("servertp", "tp"), out.toByteArray());
+        }));
     }
 
     private List<String> candidate(String arg, List<String> candidates) {
