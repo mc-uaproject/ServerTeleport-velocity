@@ -31,6 +31,7 @@ public class ServerTeleportCommand implements SimpleCommand {
     private final String langPlayerNum;
     private final String langPlayerName;
     private final String langSuccess;
+    private final String langNotification;
 
     public ServerTeleportCommand(ProxyServer server, Toml toml) {
         this.server = server;
@@ -44,6 +45,7 @@ public class ServerTeleportCommand implements SimpleCommand {
         this.langPlayerNum = lang.getString("player-num");
         this.langPlayerName = lang.getString("player-name");
         this.langSuccess = lang.getString("success");
+        this.langNotification = lang.getString("notification");
     }
 
     @Override
@@ -130,6 +132,7 @@ public class ServerTeleportCommand implements SimpleCommand {
         // Run Redirect
         src.forEach(p -> {
             if (!dstOptional.equals(p.getCurrentServer().map(ServerConnection::getServer))) {
+                p.sendMessage(Component.text(langPrefix).append(Component.text(String.format(langNotification, dst.getServerInfo().getName()))));
                 p.createConnectionRequest(dst).fireAndForget();
             }
         });
